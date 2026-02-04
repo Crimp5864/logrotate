@@ -22,9 +22,9 @@ state_dir="$HOME/.local/logrotate"
 
 mk_dir "$config_dir" "$state_dir" "$systemd_dir"
 touch "$state_dir/logrotate.status"
+chmod 600 "$state_dir/logrotate.status"
 cp logrotate.{service,timer} "$systemd_dir"
 cp logrotate.conf "$config_dir"
-chmod 600 "$state_dir/logrotate.status"
 
 systemctl --user daemon-reload
 systemctl --user --now enable logrotate.timer
