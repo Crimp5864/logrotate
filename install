@@ -6,12 +6,26 @@
 
 mk_dir() {
 	for d in "$@"; do
-		echo "mkdir -p $d"
+		mkdir -p "$d"
 	done
 }
 
-systemd_dir="~/.config/systemd/user"
-config_dir="~/.config/logrotate"
-state_dir="~/.local/logrotate"
+#cp_files() {
+#	for f in "$@"; do
+#		echo "cp $f"
+#	done
+#}
 
-mk_dir $config_dir $state_dir $systemd_dir
+systemd_dir="$HOME/.config/systemd/user"
+config_dir="$HOME/.config/logrotate"
+state_dir="$HOME/.local/logrotate"
+
+mk_dir "$config_dir" "$state_dir" "$systemd_dir"
+touch "$state_dir/logrotate.status"
+cp logrotate.{service,timer} "$systemd_dir"
+cp logrotate.conf "$config_dir"
+cp logrotate.status "$state_dir"
+chmod 600 "$state_dir/logrotate.status"
+
+systemctl --user daemon-reload
+systemctl --user enable logrotate.timer
