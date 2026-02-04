@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# Install script for per user log rotate configuration
+#
+# Files: logrotate.conf, logrotate.status, logrotate.service, logrotate.timer
+
+mk_dir() {
+	for d in "$@"; do
+		echo "mkdir -p $d"
+	done
+}
+
+systemd_dir="~/.config/systemd/user"
+config_dir="~/.config/logrotate"
+state_dir="~/.local/logrotate"
+
+mk_dir $config_dir $state_dir $systemd_dir
