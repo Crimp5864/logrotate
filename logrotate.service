@@ -5,5 +5,5 @@ Documentation=man:logrotate(8) man:logrotate.conf(5)
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/logrotate --debug \
-	--state=%h/Projects/logrotate/state \
-	%h/Projects/logrotate/mylogs.conf
+	--state=%h/Projects/logrotate/logrotate.status \
+	%h/Projects/logrotate/logrotate.conf
