@@ -24,8 +24,7 @@ mk_dir "$config_dir" "$state_dir" "$systemd_dir"
 touch "$state_dir/logrotate.status"
 cp logrotate.{service,timer} "$systemd_dir"
 cp logrotate.conf "$config_dir"
-cp logrotate.status "$state_dir"
 chmod 600 "$state_dir/logrotate.status"
 
 systemctl --user daemon-reload
-systemctl --user enable logrotate.timer
+systemctl --user --now enable logrotate.timer
