@@ -1,0 +1,7 @@
+[Unit]
+Description=Rotate user log files
+Documentation=man:logrotate(8) man:logrotate.conf(5)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/logrotate %h/.config/logrotate/mylogs.conf
