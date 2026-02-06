@@ -3,28 +3,24 @@
 # Install script for per user log rotate configuration
 #
 # Files: logrotate.conf, logrotate.status, logrotate.service, logrotate.timer
+# Configure logrotate.conf as needed
 
-mk_dir() {
-	for d in "$@"; do
-		mkdir -p "$d"
-	done
-}
-
-#cp_files() {
-#	for f in "$@"; do
-#		echo "cp $f"
-#	done
-#}
-
-systemd_dir="$HOME/.config/systemd/user"
 config_dir="$HOME/.config/logrotate"
 state_dir="$HOME/.local/logrotate"
+systemd_dir="$HOME/.config/systemd/user"
+systemd_unit="logrotate.timer"
 
-mk_dir "$config_dir" "$state_dir" "$systemd_dir"
+for d in "$config_dir" "$state_dir" "$systemd_dir"; do
+	mkdir --parents "$d"
+done
 touch "$state_dir/logrotate.status"
 chmod 600 "$state_dir/logrotate.status"
-cp logrotate.{service,timer} "$systemd_dir"
-cp logrotate.conf "$config_dir"
+cp --update=none logrotate.{service,timer} "$systemd_dir"
+cp --update=none logrotate.conf "$config_dir"
 
 systemctl --user daemon-reload
-systemctl --user --now enable logrotate.timer
+if systemctl --user in-enabled $systemd_unit &> /dev/null; then
+	systemctl --user restart $systemd_unit
+else
+	systemctl --user --now enable $systemd_unit
+fi
