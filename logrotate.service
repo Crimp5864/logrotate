@@ -1,9 +1,0 @@
-[Unit]
-Description=Rotate user log files
-Documentation=man:logrotate(8) man:logrotate.conf(5)
-
-[Service]
-Type=oneshot
-ExecStart=/usr/bin/logrotate \
-	--state=%h/.local/logrotate/logrotate.status \
-	%h/.config/logrotate/logrotate.conf
