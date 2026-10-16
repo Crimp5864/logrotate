@@ -5,4 +5,4 @@ reflect those of the defaults such as 'logrotate.conf' and 'logrotate.status'.
 
 * Systemd units are placed in ~/.config/systemd/user/
 * Configuration is placed in ~/.config/logrotate/
-* Status is placed in ~/.local/logrotate/
+* Status is placed in ~/.local/state/logrotate/
