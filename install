@@ -5,23 +5,60 @@
 # Files: logrotate.conf, logrotate.status, logrotate.service, logrotate.timer
 # Configure logrotate.conf as needed
 
-config_dir="$HOME/.config/logrotate"
-state_dir="$HOME/.local/state/logrotate"
-systemd_dir="$HOME/.config/systemd/user"
-systemd_unit="logrotate.timer"
+# Assign variables
+log_file="install.log"
+declare -A dirs=(
+	[config_dir]="$HOME/.config/logrotate"
+	[state_dir]="$HOME/.local/state/logrotate"
+	[systemd_dir]="$HOME/.config/systemd/user"
+)
+local_config_dir='home/dot_config/logrotate'
+local_systemd_dir='home/dot_config/systemd/user'
+service="logrotate.service"
+timer="logrotate.timer"
+config="logrotate.conf"
+state="logrotate.status"
+state_path="${dirs[state_dir]}/$state"
 
-for d in "$config_dir" "$state_dir" "$systemd_dir"; do
-	mkdir --parents "$d"
+# Define functions
+log() {
+	local message="$1"
+	echo "$message"
+	echo "$message" >> "$log_file"
+}
+
+# Initialize log file
+: > "$log_file"
+
+# Create directories
+for dir in "${dirs[@]}"; do
+	if mkdir --parents "$dir" &> /dev/null; then
+		log "Creating directory $dir"
+	else
+		log "Error creating directory $dir" >&2
+		exit 1
+	fi
 done
 
-touch "$state_dir/logrotate.status"
-chmod 600 "$state_dir/logrotate.status"
-cp home/dot_config/systemd/user/logrotate.{service,timer} "$systemd_dir"
-cp --update=none home/dot_config/logrotate/logrotate.conf "$config_dir"
+# Create state 
+if touch "$state_path" &> /dev/null; then
+	log "Creating $state"
+	if ! chmod 600 "$state_path" &> /dev/null; then
+		log "Error setting permissions on $state" >&2
+		exit 1
+	fi
+else
+	log "Error creating $state" >&2
+	exit 1
+fi
+
+cp "$local_systemd_dir/$service" "${dirs[systemd_dir]}" &> /dev/null
+cp "$local_systemd_dir/$timer" "${dirs[systemd_dir]}" &> /dev/null
+cp --update=none "$local_config_dir/$config" "${dirs[config_dir]}" &> /dev/null
 
 systemctl --user daemon-reload
-if systemctl --user in-enabled $systemd_unit &> /dev/null; then
-	systemctl --user restart $systemd_unit
+if systemctl --user is-enabled $timer &> /dev/null; then
+	systemctl --user restart $timer
 else
-	systemctl --user --now enable $systemd_unit
+	systemctl --user --now enable $timer
 fi
