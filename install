@@ -6,19 +6,18 @@
 # Configure logrotate.conf as needed
 
 # Assign variables
-log_file="install.log"
-declare -A dirs=(
-	[config_dir]="$HOME/.config/logrotate"
-	[state_dir]="$HOME/.local/state/logrotate"
-	[systemd_dir]="$HOME/.config/systemd/user"
-)
 local_config_dir='home/dot_config/logrotate'
 local_systemd_dir='home/dot_config/systemd/user'
-service="logrotate.service"
-timer="logrotate.timer"
-config="logrotate.conf"
-state="logrotate.status"
-state_path="${dirs[state_dir]}/$state"
+dest_config_dir="$HOME/.config/logrotate"
+dest_state_dir="$HOME/.local/state/logrotate"
+dest_systemd_dir="$HOME/.config/systemd/user"
+service_file='logrotate.service'
+timer_file='logrotate.timer'
+config_file='logrotate.conf'
+state_file='logrotate.status'
+dest_state_path="$dest_state_dir/$state_file"
+log_file='install.log'
+script_name="${0##*/}"
 
 # Define functions
 log() {
@@ -30,8 +29,10 @@ log() {
 # Initialize log file
 : > "$log_file"
 
+log "Starting $script_name for per-user logrotate"
+
 # Create directories
-for dir in "${dirs[@]}"; do
+for dir in "$dest_config_dir" "$dest_state_dir" "$dest_systemd_dir"; do
 	if mkdir --parents "$dir" &> /dev/null; then
 		log "Creating directory $dir"
 	else
@@ -40,25 +41,43 @@ for dir in "${dirs[@]}"; do
 	fi
 done
 
-# Create state 
-if touch "$state_path" &> /dev/null; then
-	log "Creating $state"
-	if ! chmod 600 "$state_path" &> /dev/null; then
-		log "Error setting permissions on $state" >&2
+# Create state file
+if touch "$dest_state_path" &> /dev/null; then
+	log "Creating $state_file"
+	if ! chmod 600 "$dest_state_path" &> /dev/null; then
+		log "Error setting permissions on $state_file" >&2
 		exit 1
 	fi
 else
-	log "Error creating $state" >&2
+	log "Error creating $state_file" >&2
 	exit 1
 fi
 
-cp "$local_systemd_dir/$service" "${dirs[systemd_dir]}" &> /dev/null
-cp "$local_systemd_dir/$timer" "${dirs[systemd_dir]}" &> /dev/null
-cp --update=none "$local_config_dir/$config" "${dirs[config_dir]}" &> /dev/null
+# Copy systemd files
+for file in "$service_file" "$timer_file"; do
+	if cp "$local_systemd_dir/$file" "$dest_systemd_dir/" &> /dev/null; then
+		log "Copying file $file"
+	else
+		log "Error copying $file" >&2
+	fi
+done
 
-systemctl --user daemon-reload
-if systemctl --user is-enabled $timer &> /dev/null; then
-	systemctl --user restart $timer
+# Copy config file
+if [[ ! -e "$dest_config_dir/$config_file" ]]; then
+	if cp "$local_config_dir/$config_file" "$dest_config_dir/" &> /dev/null; then
+		log "Copying file $config_file"
+	else
+		log "Error copying $config_file" >&2
+	fi
+fi
+
+# Enable systemd units
+systemctl --user daemon-reload && log 'Reloading systemd daemons' ||
+	log 'Error reloading systemd daemons'
+if systemctl --user is-enabled $timer_file &> /dev/null; then
+	systemctl --user restart $timer_file
+	log "Restarting $timer_file"
 else
-	systemctl --user --now enable $timer
+	systemctl --user --now enable $timer_file
+	log "Enabling and starting $timer_file"
 fi
