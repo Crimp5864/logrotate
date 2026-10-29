@@ -5,7 +5,7 @@ Import-Module -Name Log-Rotate
 $State = "$env:LOCALAPPDATA\Log-Rotate\Log-Rotate.status"
 $Config = "$env:APPDATA\Log-Rotate\Log-Rotate.conf"
 
-# Rotate logs
+# Main Process
 Log-Rotate -Config $Config -State $State
 
 # Cleanup
