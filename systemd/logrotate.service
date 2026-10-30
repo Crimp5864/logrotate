@@ -5,9 +5,9 @@ Documentation=man:logrotate(8) man:logrotate.conf(5)
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/logrotate \
-	--state=%h/.local/state/logrotate/logrotate.status \
+  --state=%h/.local/state/logrotate/logrotate.status \
   --log=syslog \
-	%h/.config/logrotate/logrotate.conf
+  %h/.config/logrotate/logrotate.conf
 
 [Install]
 WantedBy-default.target
