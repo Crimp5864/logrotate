@@ -4,7 +4,7 @@ Documentation=man:logrotate(8) man:logrotate.conf(5)
 
 [Timer]
 OnCalendar=daily
-RandomizedDelaySec=1h
+RandomizedDelaySec=15m
 Persistent=true
 
 [Install]
