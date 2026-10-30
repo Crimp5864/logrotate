@@ -1,6 +1,6 @@
 [Unit]
-Description=Daily rotation of user log files
-Documentation=man:logrotate(8) man:logrotate.conf(5)
+Description=Rotate user log files on a schedule.
+Documentation=man:systemd.timer(5)
 Documentation=file:%h/.config/systemd/user/logrotate.timer
 
 [Timer]

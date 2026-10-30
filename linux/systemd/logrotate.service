@@ -1,6 +1,8 @@
 [Unit]
 Description=Rotate user log files
-Documentation=man:logrotate(8) man:logrotate.conf(5)
+Documentation=man:logrotate(8)
+Documentation=man:logrotate.conf(5)
+Documentation=man:systemd.service(5)
 Documentation=file:%h/.config/systemd/user/logrotate.service
 
 [Service]
