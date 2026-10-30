@@ -1,6 +1,7 @@
 [Unit]
 Description=Rotate user log files
 Documentation=man:logrotate(8) man:logrotate.conf(5)
+Documentation=file:%h/.config/systemd/user/logrotate.service
 
 [Service]
 Type=oneshot
@@ -10,4 +11,4 @@ ExecStart=/usr/bin/logrotate \
   %h/.config/logrotate/logrotate.conf
 
 [Install]
-WantedBy-default.target
+WantedBy=default.target
