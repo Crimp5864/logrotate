@@ -5,28 +5,55 @@
 # Files: logrotate.conf, logrotate.status, logrotate.service, logrotate.timer
 # Configure logrotate.conf as needed
 
+### Requirements
+# This utility requires non-root operation.
+if [[ "$EUID" -eq 0 ]]; then
+  echo -e "\e[1;31mError: Do not run this script as root.\e[0m" >&2
+  exit 1
+fi
+
+# This utility requires systemd.
+if [ ! -d "/run/systemd/system" ]; then
+  echo -e "\e[1;31mError: This system does not use systemd. Aborting.\e[0m" >&2
+  exit 1
+fi
+
+# This utility requires logrotate.
+if ! command -v logrotate &> /dev/null; then
+  echo -e "\e[1;31mError: 'logrotate' is required but not installed.\e[0m" >&2
+  exit 1
+fi
+
 ### Variables
-local_config_dir='home/dot_config/logrotate'
-local_systemd_dir='home/dot_config/systemd/user'
-dest_config_dir="$HOME/.config/logrotate"
-dest_state_dir="$HOME/.local/state/logrotate"
-dest_systemd_dir="$HOME/.config/systemd/user"
+# Source
+src_config="linux/logrotate.conf"
+src_systemd_dir="linux/systemd"
+#src_service="linux/systemd/logrotate.service"
+#src_timer="linux/systemd/logrotate.timer"
+
+# Destination directories
+config_dir="$HOME/.config/logrotate"
+state_dir="$HOME/.local/state/logrotate"
+systemd_dir="$HOME/.config/systemd/user"
 dest_dirs=(
-  "$dest_config_dir"
-  "$dest_state_dir"
-  "$dest_systemd_dir"
+  "$config_dir"
+  "$state_dir"
+  "$systemd_dir"
 ) 
-service_file='logrotate.service'
-timer_file='logrotate.timer'
-config_file='logrotate.conf'
-state_file='logrotate.status'
+
+# Destination files
+service_file="$systemd_dir/logrotate.service"
+timer_file="$systemd_dir/logrotate.timer"
+config_file="$config_dir/logrotate.conf"
+state_file="$state_dir/logrotate.status"
 systemd_units=(
   "$service_file"
   "$timer_file"
 )
-dest_state_path="$dest_state_dir/$state_file"
-local_config_path="$local_config_dir/$config_file"
-log_file='install.log'
+
+#dest_state_path="$dest_state_dir/$state_file"
+#local_config_path="$local_config_dir/$config_file"
+log_file="install.log"
 script_name="${0##*/}"
 
 ### Functions
@@ -36,9 +63,9 @@ log() {
   echo "$message" >> "$log_file"
 }
 
-### Preflight
+### Pre-Flight Checks
 #preflight() {
-# # Is destination writable
+# Is destination writable
 #}
 
 # Initialize log file
@@ -49,7 +76,7 @@ log "Starting $script_name for user level logrotate"
 # Create directories
 for dir in "${dest_dirs[@]}"; do
   # Skip if it exists.
-  [ -d "$dir" ] && continue
+  [[ -d "$dir" ]] && continue
 
   # Attempt to create if it does not exist.
   if mkdir --parents "$dir" &> /dev/null; then
@@ -58,49 +85,52 @@ for dir in "${dest_dirs[@]}"; do
     log "Error creating directory $dir" >&2
     exit 1
   fi
-
 done
 
-# Create state file
-if [ ! -e "$dest_state_path" ]; then
-  { touch "$dest_state_path" &> /dev/null; log "Creating $state_file"; } \
-    || { log "Error creating $state_file" >&2; exit 1; }
+# Copy config file
+if [[ ! -e "$config_file" ]]; then
+  cp "$src_config" "$config_file" &> /dev/null \
+    && log "Copying file ${config_file##*/}" \
+    || { log "Error copying ${config_file##*/}" >&2; exit 1; }
+else
+  log "${config_file##*/} exists. Nothing to do."
 fi
 
-chmod 600 "$dest_state_path" &> /dev/null \
-  || { log "Error setting permissions on $state_file" >&2; exit 1; }
+# Create state file
+if [[ ! -e "$state_file" ]]; then
+  touch "$state_file" &> /dev/null \
+    && log "Creating ${state_file##*/}" \
+    || { log "Error creating ${state_file##*/}" >&2; exit 1; }
+else
+  log "${state_file##*/} exists. Nothing to do."
+fi
+
+chmod 600 "$state_file" &> /dev/null \
+  || { log "Error setting permissions on ${state_file##*/}" >&2; exit 1; }
 
 # Copy systemd files
 for unit in "${systemd_units[@]}"; do
   # Skip if it exists.
-  [ -e "$dest_systemd_dir/$unit" ] && continue
+  [[ -e "$unit" ]] && continue
 
   # Attempt to create if it does not exist.
-  if cp "$local_systemd_dir/$unit" "$dest_systemd_dir/" &> /dev/null; then
-    log "Copying file $unit"
+  if cp "$src_systemd_dir/${unit##*/}" "$unit" &> /dev/null; then
+    log "Copying file ${unit##*/}"
   else
-    log "Error copying $unit" >&2
+    log "Error copying ${unit##*/}" >&2
     exit 1
   fi
 done
 
-# Copy config file
-if [ ! -e "$dest_config_path" ]; then
-  { cp --update=none "$local_config_path" "$dest_config_dir/" &> /dev/null; \
-    log "Copying file $config_file"; }
-else
-  { log "Error copying $config_file" >&2; exit 1; }
-fi
-
 # Enable systemd units
 systemctl --user daemon-reload && log 'Reloading systemd daemons' ||
   { log 'Error reloading systemd daemons'; exit 1; }
-  if systemctl --user is-enabled $timer_file &> /dev/null; then
-    systemctl --user restart $timer_file
-    log "Restarting $timer_file"
+  if systemctl --user is-enabled "${timer_file##*/}" &> /dev/null; then
+    systemctl --user restart "${timer_file##*/}"
+    log "Restarting ${timer_file##*/}"
   else
-    systemctl --user --now enable $timer_file
-    log "Enabling and starting $timer_file"
+    systemctl --user --now enable "${timer_file##*/}"
+    log "Enabling and starting ${timer_file##*/}"
   fi
 
-  echo "Check $config_file configuration"
+  echo "Check ${config_file##*/} configuration"
