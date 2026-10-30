@@ -3,7 +3,9 @@
 This is a standalone Logrotate configuration for per user logs only. File names
 reflect those of the defaults such as 'logrotate.conf' and 'logrotate.status'.
 
-## Files
+## Linux
+
+### Files
 
 - Systemd: ~/.config/systemd/user/
     - logrotate.service
@@ -12,3 +14,8 @@ reflect those of the defaults such as 'logrotate.conf' and 'logrotate.status'.
     - logrotate.conf
 - Status: ~/.local/state/logrotate/
     - logrotate.status
+
+
+## Windows
+
+### Files

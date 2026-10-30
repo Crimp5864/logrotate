@@ -1,0 +1,6 @@
+# Force PowerShell scripts and config files to keep CRLF line endings
+windows/*.ps1 text eol=crlf
+windows/*.conf text eol=crlf
+
+# Force everything else to normal auto/LF behavior
+* text=auto
