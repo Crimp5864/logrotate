@@ -2,7 +2,7 @@
 Import-Module -Name Log-Rotate
 
 # Variables
-$State = "$env:LOCALAPPDATA\Log-Rotate\Log-Rotate.status"
+$State = "$env:LOCALAPPDATA\Log-Rotate\Log-Rotate.state"
 $Config = "$env:APPDATA\Log-Rotate\Log-Rotate.conf"
 
 # Main Process
