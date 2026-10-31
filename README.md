@@ -1,24 +1,28 @@
 # Logrotate for personal logs
 
-This is a standalone Logrotate configuration for per user logs only. File names
-reflect those of the defaults such as 'logrotate.conf' and 'logrotate.status'.
+This is a standalone Logrotate configuration for per user logs only.
+
+## Summary
+
+Logrotate handles system logs by default. User logs can be managed in this fashion but having a user specific \
+configuration grants full control to the user, especially in cases where the user is not an administrator. The \
+only requirements are the logrotate package (Linux) or Log-Rotate PowerShell module (Windows). No \
+administrative permission is required.
 
 ## Linux
 
 ### Install
 
-1. **Clone the repository:**
-    ```bash
-    git clone https://github.com/Crimp5864/logrotate
-    ```
-2. **Navigate to directory:**
-    ```bash
-    cd logrotate
-    ```
-3. **Install files:**
-   ```bash
-   ./install
-   ```
+```bash
+# Clone the repository.
+git clone https://github.com/Crimp5864/logrotate
+
+# Navigate into the repository.
+cd logrotate
+
+# Install files.
+./install
+```
 
 ### Files
 
@@ -33,4 +37,12 @@ reflect those of the defaults such as 'logrotate.conf' and 'logrotate.status'.
 
 ## Windows
 
+### Install
+
+```bash
+# Placeholder for installation instructions
+```
+
 ### Files
+
+- 
