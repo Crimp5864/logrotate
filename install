@@ -55,7 +55,13 @@ systemd_units=(
 # --- Functions ---
 log() {
   local message="$1"
-  echo "$message" | tee --append "$script_root/$log_file"
+  echo -e "$message" | tee --append "$script_root/$log_file"
+}
+
+fail() {
+  local message="$1"
+  log "\e[31m$message\e[0m" >&2
+  exit 1
 }
 
 # --- Pre-Flight Checks ---
@@ -64,7 +70,7 @@ log() {
 
 # --- Main Process ---
 
-log "Starting $script_name for user level logrotate"
+log "Starting $script_name for user level logrotate\n"
 
 # Create directories
 for dir in "${dest_dirs[@]}"; do
@@ -74,8 +80,9 @@ for dir in "${dest_dirs[@]}"; do
   # Attempt to create if it does not exist.
   log "Creating directory $dir"
   mkdir --parents "$dir" &> /dev/null \
-    || { log "Error creating directory $dir" >&2; exit 1; }
+    || fail "Error creating directoy $dir."
 done
+echo
 
 # Copy config file
 if [[ -e "$config_dir/$config_file" ]]; then
@@ -83,7 +90,7 @@ if [[ -e "$config_dir/$config_file" ]]; then
 else
   log "Copying file $config_file."
   cp "$src_dir/$config_file" "$config_dir/$config_file" &> /dev/null \
-    || { log "Error copying file $config_file." >&2; exit 1; }
+    || fail "Error copying file $config_file."
 fi
 
 # Create state file
@@ -92,7 +99,7 @@ if [[ -e "$state_dir/$state_file" ]]; then
 else
   log "Creating file $state_file"
   touch "$state_dir/$state_file" &> /dev/null \
-    || { log "Error creating file $state_file" >&2; exit 1; }
+    || fail "Error creating file $state_file"
 fi
 
 # Copy systemd files
@@ -103,12 +110,12 @@ for unit in "${systemd_units[@]}"; do
   # Attempt to create if it does not exist.
   log "Copying file $unit"
   cp "$src_dir/$unit" "$systemd_dir/$unit" &> /dev/null \
-    || { log "Error copying file $unit" >&2; exit 1; }
+    || fail "Error copying file $unit"
 done
 
 # Enable systemd units
-log "Reloading systemd daemons"
-systemctl --user daemon-reload || { log "Error reloading daemons"; exit 1; }
+log "\nReloading systemd daemons"
+systemctl --user daemon-reload || fail "Error reloading daemons"
 
 if systemctl --user is-enabled "$timer_file" &> /dev/null; then
   log "Restarting $timer_file"
@@ -118,4 +125,4 @@ else
   systemctl --user --now enable "$timer_file"
 fi
 
-echo "Check $config_file configuration"
+echo -e "\nCheck $config_file configuration"
