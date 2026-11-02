@@ -1,14 +1,14 @@
-# Requirements
+# --- Requirements ---
 Import-Module -Name Log-Rotate
 
-# Variables
+# --- Variables ---
 $State = "$env:LOCALAPPDATA\LogRotate\LogRotate.state"
 $Config = "$env:APPDATA\LogRotate\LogRotate.conf"
 
-# Main Process
+# --- Main Process ---
 Log-Rotate -Config $Config -State $State
 
-# Cleanup
+# --- Cleanup ---
 if ( $Error.Count -eq 0 ) {
     exit 0
 }
